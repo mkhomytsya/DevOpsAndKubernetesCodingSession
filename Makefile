@@ -10,7 +10,13 @@ BIN_DIR := bin
 APP := app
 SRC := ./src
 
-.PHONY: linux arm macos windows image docker-build clean
+# Derived defaults (can be overridden)
+REPO ?= $(shell echo $(IMAGE_TAG) | sed 's/:.*//')
+SHORT_SHA ?= $(shell git rev-parse --short HEAD 2>/dev/null || echo local)
+
+.PHONY: linux arm macos windows image docker-build push clean
+
+.ONESHELL:
 
 linux:
 	@echo "Building for linux/amd64"
@@ -42,9 +48,25 @@ image:
 ## Example: make docker-build TARGETOS=linux TARGETARCH=arm64 TAG=$(IMAGE_TAG)-linux-arm64
 docker-build:
 	@if [ -z "$(TARGETOS)" ] || [ -z "$(TARGETARCH)" ]; then echo "Specify TARGETOS and TARGETARCH, e.g. make docker-build TARGETOS=linux TARGETARCH=arm64 TAG=$(IMAGE_TAG)-linux-arm64"; exit 1; fi
-	@TAG=$$( [ -n "$(TAG)" ] && echo "$(TAG)" || echo "$(IMAGE_TAG)-$(TARGETOS)-$(TARGETARCH)" ); \
-	 echo "Building image with TARGETOS=$(TARGETOS) TARGETARCH=$(TARGETARCH) -> $$TAG"; \
-	 docker build --build-arg TARGETOS=$(TARGETOS) --build-arg TARGETARCH=$(TARGETARCH) -t $$TAG .
+	@# If user provided TAG use it, otherwise generate one from repo, target and git sha
+	if [ -n "$(TAG)" ]; then \
+		FINAL_TAG="$(TAG)"; \
+	else \
+		FINAL_TAG=$(REPO):$(TARGETOS)-$(TARGETARCH)-$(SHORT_SHA); \
+	fi; \
+	echo "Building image with TARGETOS=$(TARGETOS) TARGETARCH=$(TARGETARCH) -> $$FINAL_TAG"; \
+	docker build --build-arg TARGETOS=$(TARGETOS) --build-arg TARGETARCH=$(TARGETARCH) -t $$FINAL_TAG .
+
+# Push an image to the registry. Use TAG to specify an image, otherwise IMAGE_TAG is used.
+#   make push TAG=ghcr.io/yourorg/repo:linux-arm64 TARGETOS=linux TARGETARCH=arm64
+push:
+	@if [ -z "$(TARGETOS)" ] || [ -z "$(TARGETARCH)" ]; then \
+		echo "Specify TARGETOS and TARGETARCH, e.g. make push TARGETOS=linux TARGETARCH=amd64"; \
+		exit 1; \
+	fi
+	@IMAGE="$(REPO):$(TARGETOS)-$(TARGETARCH)-$(SHORT_SHA)"; \
+	echo "Pushing $$IMAGE"; \
+	docker push $$IMAGE
 
 clean:
 	@echo "Cleaning: removing image $(IMAGE_TAG) and build artifacts"

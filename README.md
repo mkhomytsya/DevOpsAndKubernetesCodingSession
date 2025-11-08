@@ -35,6 +35,15 @@ docker run -p 8080:8080 ghcr.io/mkhomytsya/devopsandkubernetescodingsession:loca
 
 # Build an image that embeds a cross-compiled binary (pass TARGETOS and TARGETARCH). Example:
 make docker-build TARGETOS=linux TARGETARCH=arm64 TAG=ghcr.io/yourorg/repo:linux-arm64
+
+# Push images to a registry (example uses GHCR). If the image is not present locally set BUILD=1
+# to build it first. Example:
+#
+# Build and push a cross-compiled linux/arm64 image:
+make push TAG=ghcr.io/yourorg/repo:linux-arm64 BUILD=1 TARGETOS=linux TARGETARCH=arm64
+#
+# Push the default IMAGE_TAG (as set in the Makefile):
+make push
 ```
 
 Clean local artifacts and the default image tag:
