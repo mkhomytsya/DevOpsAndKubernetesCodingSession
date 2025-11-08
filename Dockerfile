@@ -2,7 +2,7 @@
 ARG TARGETOS=linux
 ARG TARGETARCH=amd64
 
-FROM quay.io/projectquay/golang AS builder
+FROM quay.io/projectquay/golang:1.25 AS builder
 ARG TARGETOS
 ARG TARGETARCH
 WORKDIR /src
@@ -20,6 +20,7 @@ RUN go build -o /app ./src
 # Final image: minimal. Note: images built for non-Linux targets will contain the
 # cross-compiled binary but won't be runnable on a Linux Docker Engine.
 FROM scratch AS final
+ADD ./html /html
 COPY --from=builder /app /app
 ENTRYPOINT ["/app"]
 EXPOSE 8080
@@ -29,15 +30,3 @@ EXPOSE 8080
 #   docker build -t quay.io/<org>/devops-session:latest .
 # Build image with a cross-compiled binary embedded (does NOT require buildx):
 #   docker build --build-arg TARGETOS=linux --build-arg TARGETARCH=arm64 -t quay.io/<org>/devops-session:linux-arm64 .
-FROM golang:1.22 AS builder
-WORKDIR /src
-COPY go.mod ./
-RUN go mod download
-COPY src ./src
-RUN CGO_ENABLED=0 go build -o app ./src
-
-FROM scratch
-ADD ./html /html
-COPY --from=builder /src/app /app
-ENTRYPOINT ["/app"]
-EXPOSE 8080

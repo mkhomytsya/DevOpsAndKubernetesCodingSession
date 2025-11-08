@@ -5,7 +5,7 @@
 #    a cross-compiled binary for the requested TARGETOS/TARGETARCH
 # - `make clean` removes created image and build artifacts
 
-IMAGE_TAG ?= quay.io/projectquay/devopsandkubernetescodingsession:local
+IMAGE_TAG ?= ghcr.io/mkhomytsya/devopsandkubernetescodingsession:local
 BIN_DIR := bin
 APP := app
 SRC := ./src
