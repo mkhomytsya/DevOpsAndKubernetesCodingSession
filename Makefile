@@ -48,7 +48,14 @@ docker-build:
 
 clean:
 	@echo "Cleaning: removing image $(IMAGE_TAG) and build artifacts"
-	-@docker rmi $(IMAGE_TAG) || true
+	# Stop and remove any containers that were created from this image
+	-@containers=$$(docker ps -a -q --filter ancestor=$(IMAGE_TAG)); \
+	 if [ -n "$$containers" ]; then \
+		 echo "Stopping and removing containers: $$containers"; \
+		 docker rm -f $$containers || true; \
+	 fi; \
+	# Force remove the image (if present)
+	-@docker rmi -f $(IMAGE_TAG) || true
 	-@rm -rf $(BIN_DIR)
 
 # Notes:
