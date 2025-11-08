@@ -40,7 +40,7 @@ make docker-build TARGETOS=linux TARGETARCH=arm64 TAG=ghcr.io/yourorg/repo:linux
 # to build it first. Example:
 #
 # Build and push a cross-compiled linux/arm64 image:
-make push TAG=ghcr.io/yourorg/repo:linux-arm64 BUILD=1 TARGETOS=linux TARGETARCH=arm64
+make push TAG=ghcr.io/yourorg/repo:linux-arm64 TARGETOS=linux TARGETARCH=arm64
 #
 # Push the default IMAGE_TAG (as set in the Makefile):
 make push
